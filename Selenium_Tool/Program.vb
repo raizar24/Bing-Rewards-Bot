@@ -36,7 +36,6 @@ Module Program
             Dim minutesLeft As Integer = CInt(remainingTime.TotalMinutes)
             Dim secondsLeft As Integer = CInt(remainingTime.Seconds)
             Console.WriteLine("{0:00}:{1:00} remaining", minutesLeft, secondsLeft)
-
             Threading.Thread.Sleep(1000)
         Loop
     End Sub
@@ -51,7 +50,6 @@ Module Program
         Dim url As String = "https://www.bing.com/search?q=a"
         Dim isSearchReady = False
         Dim searchTerms As List(Of KeyValuePair(Of Integer, String))
-
         searchTerms = GetSearchTerms()
 
         'PC mode
@@ -98,7 +96,6 @@ Module Program
         'shutdown()
         ' End Try
     End Sub
-
 
     Private Sub CloseProgram(processname As String)
         Dim ProgramProcesses As Process() = Process.GetProcessesByName(processname)
@@ -264,9 +261,5 @@ Module Program
         Console.WriteLine($"# of search items: {searchTerms.Count}" & vbCrLf)
         Return searchTerms.Select(Function(term, index) New KeyValuePair(Of Integer, String)(index, term)).ToList()
     End Function
-
-
-
-
 
 End Module
