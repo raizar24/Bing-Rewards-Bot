@@ -1,26 +1,16 @@
 Imports OpenQA.Selenium.Chrome
 Imports OpenQA.Selenium.Firefox
-Imports OpenQA.Selenium.Support.UI
 Imports OpenQA.Selenium
-Imports OpenQA.Selenium.Interactions
-Imports System.IO
 Imports System.Threading
 Imports Newtonsoft.Json.Linq
 Imports System.Net.Http
 Imports System.Xml
-Imports OpenQA.Selenium.Chromium
-Imports System.Reflection.PortableExecutable
-Imports System.Net.Mail
 
 Module Program
     Dim driver As IWebDriver
     Dim options As New ChromeOptions()
     Dim optionsFox As New FirefoxOptions()
 
-    'to dos:
-    '- Include sick and vacation leave
-    ' 11/12/2023 UPDATE: changed to firefox due to user agent extension does not work on chrome anymore
-    ' disabled earning points due to microsoft has 15 mins cooldown
     Sub Main(args As String())
         Dim TryAgain As Boolean = False
         Dim chromePath As String = "C:\Program Files\Google\Chrome\Application\chrome.exe"
