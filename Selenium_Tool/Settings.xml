@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Variable>
+  <username>royjohn.garcia</username>
+  <password>yourpassword</password>
+  <accountid>fujitsuph</accountid>
+  <holiday>01/01,02/25,03/08,04/06,04/07,04/10,04/21,05/01,06/12,08/21,08/28,12/08,12/25</holiday>
+  <email>yourusername</email>
+  <bpassword>yourpassword</bpassword>
+  <EarnOnly>yes</EarnOnly>
+  <NextPassword>newpass</NextPassword>
+  <OldPassword>yourold</OldPassword>
+</Variable>
+
+
