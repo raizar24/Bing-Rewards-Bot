@@ -32,40 +32,7 @@ Module Program
             Thread.Sleep(2000)
             EarnPointsProceedure(args(1))
         End If
-
-        'If MayPasokBa() = False Or loadXML("EarnOnly") = "yes" Then
-        '    Process.Start(processInfo)
-        '    Thread.Sleep(2000)
-        '    'EarnPointsProceedure()
-        '    shutdown()
-        '    Exit Sub
-        'End If
-        'Do While TryAgain = False
-        '    Process.Start(processInfo)
-        '    Thread.Sleep(2000)
-        '    driver = New ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(5))
-        '    TryAgain = visitSunFish()
-        '    'TryAgain = True
-        'Loop
-        ''External BCP, always TW status
-        'visitBCP()
-        'shutdown()
-        'EarnPointsProceedure()
     End Sub
-    Private Function MayPasokBa()
-        'Returns false if is in the set of string <holiday> or Saturday, Sunday and Holiday
-        'Return true does not met the conditions
-        Dim currentDate As Date = Date.Today '#6/18/2023 12:00:00 AM# 
-        Dim dayOfWeek As DayOfWeek = currentDate.DayOfWeek
-        If dayOfWeek = DayOfWeek.Sunday Or dayOfWeek = DayOfWeek.Saturday Then
-            Return False
-        End If
-        Dim holidayList As List(Of Date) = GetHoliday()
-        If holidayList.Contains(currentDate) Then
-            Return False
-        End If
-        Return True
-    End Function
     Private Sub timer()
         Dim startTime As DateTime
         startTime = DateTime.Now.AddMinutes(15).AddSeconds(30)
@@ -149,124 +116,6 @@ Module Program
             programprocess.CloseMainWindow()
         Next
     End Sub
-
-    Private Function GetHoliday() As List(Of Date)
-        'Splits and convert the set of string into date and returns holiday list declared in setting.xml <holiday> formatted MM/DD
-        'if naka table iyan ito ang values checking
-        'Date.Today = #10/18/2023 12:00:00 AM# compares below
-        '#1/1/2023 12:00:00 AM#	
-        Dim holidayList As New List(Of Date)()
-        Dim holidayString As String = loadXML("holiday")
-        Dim holidayDates As String() = holidayString.Split(","c)
-
-        For Each dateStr As String In holidayDates
-            Dim monthDay As String() = dateStr.Split("/"c)
-            If monthDay.Length = 2 Then
-                Dim month As Integer
-                Dim day As Integer
-                If Integer.TryParse(monthDay(0), month) AndAlso Integer.TryParse(monthDay(1), day) Then
-                    Dim holidayDate As New Date(Date.Now.Year, month, day)
-                    holidayList.Add(holidayDate)
-                End If
-            End If
-        Next
-
-        Return holidayList
-    End Function
-    Private Function visitSunFish()
-        'returns True if is successfully timein
-        Try
-            Dim wait As New WebDriverWait(driver, TimeSpan.FromSeconds(300))
-            driver.Navigate().GoToUrl("https://sf.dataon.com/sf6/index.cfm")
-            wait.Until(Function(d) d.FindElement(By.TagName("body")).Displayed)
-
-            Dim accountinfo As IWebElement = driver.FindElement(By.Id("txtAccount"))
-            accountinfo.SendKeys(loadXML("accountid"))
-            Dim usernameInput As IWebElement = driver.FindElement(By.Id("txtUserName"))
-            usernameInput.SendKeys(loadXML("username"))
-            Dim passwordInput As IWebElement = driver.FindElement(By.Id("txtPassword"))
-            passwordInput.SendKeys(loadXML("password"))
-            Dim loginButton As IWebElement = driver.FindElement(By.Id("btn-logon"))
-            loginButton.Click()
-
-            'monthly change password password
-            Thread.Sleep(2000)
-            Dim ChangePassword As IReadOnlyCollection(Of IWebElement) = driver.FindElements(By.Id("txtOPassword")) 'PC mode check session
-            If ChangePassword.Count > 0 Then
-                Dim txtOPassword As IWebElement = driver.FindElement(By.Id("txtOPassword"))
-                txtOPassword.SendKeys(loadXML("password"))
-                Dim txtPassword As IWebElement = driver.FindElement(By.Id("txtPassword"))
-                txtPassword.SendKeys(loadXML("NextPassword"))
-                Dim txtCPassword As IWebElement = driver.FindElement(By.Id("txtCPassword"))
-                txtCPassword.SendKeys(loadXML("NextPassword"))
-                Dim changePasswordButton As IWebElement = driver.FindElement(By.CssSelector("input[value='Change Password']"))
-                changePasswordButton.Click()
-                saveXML(loadXML("password"), "OldPassword")
-                saveXML(loadXML("NextPassword"), "Password")
-                Thread.Sleep(2000)
-                driver.Navigate().GoToUrl("https://sf.dataon.com/sf6/index.cfm")
-            End If
-
-            wait.Until(Function(d) d.Title.Contains("Human Resource"))
-            Dim attendanceEntryForm As IWebElement = driver.FindElement(By.Id("menu_2"))
-            Dim actions As Actions = New Actions(driver)
-            actions.MoveToElement(attendanceEntryForm).Perform()
-            Dim link As IWebElement = driver.FindElement(By.XPath("//a[contains(text(),'My Attendance Entry Form')]"))
-            Dim hover As Actions = New Actions(driver)
-            hover.MoveToElement(link).Perform()
-            link.Click()
-
-            System.Threading.Thread.Sleep(10000)
-            'kaya ganito pagkakacode kasi naka 'frame' ang contents ng btn-start-time
-            'para bang 'website' in a 'website' so that I need to move the Chrome Driver pointer from 'content' to 'formtable'
-            Dim contentID As IWebElement = driver.FindElement(By.Id("content"))
-            Dim actions22 As Actions = New Actions(driver)
-            actions22.MoveToElement(contentID).Perform()
-            Dim frmSFBody As IWebElement = driver.FindElement(By.Id("frmSFBody"))
-            driver.SwitchTo().Frame(frmSFBody)
-            Dim formtable As IWebElement = driver.FindElement(By.Id("formtable"))
-            actions22.MoveToElement(formtable).Perform()
-            Dim TimeStartButton As IWebElement = driver.FindElement(By.Id("btn-start-time"))
-            TimeStartButton.Click()
-            System.Threading.Thread.Sleep(10000)
-            driver.SwitchTo().Alert.Accept()
-            Return True
-
-        Catch e As Exception
-            logs(e.Message)
-            System.Threading.Thread.Sleep(5000)
-
-            Dim chromeProcesses() As Process = Process.GetProcessesByName("chrome")
-            For Each chromeProcess As Process In chromeProcesses
-                chromeProcess.CloseMainWindow()
-            Next
-            Return False
-        End Try
-    End Function
-
-    Private Sub visitBCP()
-        Dim wait As New WebDriverWait(driver, TimeSpan.FromSeconds(60))
-        driver.Navigate().GoToUrl("https://forms.office.com/pages/responsepage.aspx?id=HRKfoeGBWEip2HNuJn_Ux01ESyKTgE9CjW5YAgw_a_VUOUZKRk9XQUJJWkJRU0hRUlBWNk9DSTQ2TS4u")
-        wait.Until(Function(d) d.Title.Contains("Business Continuity Plan"))
-        Dim radioButton3 As IWebElement = driver.FindElement(By.CssSelector("input[name='r4a81fb3a5a4e4d059213046c5f766814'][value='No']"))
-        radioButton3.Click()
-        Thread.Sleep(1000)
-        Dim textBox As IWebElement = driver.FindElement(By.CssSelector("input[placeholder='Enter your answer']"))
-        textBox.SendKeys(loadXML("username"))
-        Dim radioButton As IWebElement = driver.FindElement(By.CssSelector("input[name='rebef48f74b684ba09d12e452909a809b'][value='TW']"))
-        radioButton.Click()
-        Dim radioButton2 As IWebElement = driver.FindElement(By.CssSelector("input[name='r535dfcebea364ed190fbbacb599bba86'][value='TW']"))
-        radioButton2.Click()
-        Dim button As IWebElement = driver.FindElement(By.CssSelector("button[data-automation-id='submitButton']"))
-        button.Submit()
-    End Sub
-    'logs for to check errors
-    Private Sub logs(ByVal logMessage As String)
-        Using writer As New StreamWriter("logs.txt", True)
-            writer.WriteLine(logMessage)
-        End Using
-    End Sub
-
     'para madaling palitan ang values like username, password at holidays. para hindi build ng build
     Private Function loadXML(ByVal value As String)
         Dim xDoc As XDocument = XDocument.Load("settings.xml")
@@ -282,40 +131,6 @@ Module Program
         xmlDoc.Save("setting.xml")
     End Sub
 
-    'Private Sub BingRewards(ByVal searchKey As Char)
-    '    Dim url As String = "https://www.bing.com/search?q="
-    '    For i As Integer = 0 To 32
-    '        Thread.Sleep(2000)
-    '        driver.Navigate().GoToUrl(url & searchKey)
-    '        searchKey = ChrW(AscW(searchKey) + 1)
-    '        Thread.Sleep(1000)
-    '    Next
-    'End Sub
-
-    'change into search random string so that bing will not detech similar search
-    'patch for unable to earn search through URL 11/11/2023
-    'Private Sub BingRewards(limit As Integer)
-    '    Dim url As String = "https://www.bing.com/search?q=a"
-    '    Dim random As New Random()
-    '    Dim searchKey As String
-    '    driver.Manage.Window.Minimize()
-    '    Thread.Sleep(2000)
-    '    driver.Manage.Window.Maximize()
-    '    driver.Navigate().GoToUrl(url)
-    '    For i As Integer = 0 To limit
-    '        Dim length As Integer = 11
-    '        searchKey = RandomString(length)
-
-    '        Thread.Sleep(3000)
-    '        Dim search As IWebElement = driver.FindElement(By.Id("sb_form_q"))
-    '        search.Clear()
-    '        search.SendKeys(searchKey)
-    '        Dim EnterSearch As IWebElement = driver.FindElement(By.Id("sb_form_go"))
-    '        EnterSearch.Click()
-    '        Thread.Sleep(2000)
-    '    Next
-    'End Sub
-
     Private Function RandomString(length As Integer) As String
         Const chars As String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         'Const chars As String = "sdfjklsdjfnriuerwqenrmmqwehjxvcnasdfhjklsdfklsjdfklj123456677889ABCDERFer"
@@ -324,7 +139,6 @@ Module Program
         .Select(Function(s) s(random.Next(s.Length))).ToArray())
         Return result
     End Function
-
     'change into more human like searches 
     Private Sub BingRewards(searchTerm As String)
 
@@ -347,7 +161,6 @@ Module Program
         Thread.Sleep(2000)
         EnterSearch.Click()
     End Sub
-
 
     Private Sub CheckSessionAccount()
         driver.Navigate().GoToUrl("https://www.bing.com/")
@@ -412,14 +225,6 @@ Module Program
             Thread.Sleep(1000)
             YesButton.Click()
         End If
-    End Sub
-
-    Private Sub shutdown()
-        System.Threading.Thread.Sleep(10000)
-        Dim psi As New ProcessStartInfo("shutdown", "/s /f /t 0")
-        psi.CreateNoWindow = True
-        psi.UseShellExecute = False
-        Process.Start(psi)
     End Sub
 
     Function GetDates() As List(Of String)
