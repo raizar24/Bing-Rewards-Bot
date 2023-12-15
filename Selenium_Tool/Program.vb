@@ -1,4 +1,3 @@
-Imports OpenQA.Selenium.Chrome
 Imports OpenQA.Selenium.Firefox
 Imports OpenQA.Selenium
 Imports System.Threading
@@ -8,19 +7,58 @@ Imports System.Xml
 
 Module Program
     Dim driver As IWebDriver
-    Dim options As New ChromeOptions()
     Dim optionsFox As New FirefoxOptions()
 
     Sub Main(args As String())
-        Dim TryAgain As Boolean = False
-        Dim chromePath As String = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-        Dim aggrument As String = "--remote-debugging-port=9222 --disable-extensions"
-        Dim processInfo As New ProcessStartInfo(chromePath, aggrument)
-        options.DebuggerAddress = "localhost:9222"
-        If args(0) = "earn" Then
-            Process.Start(processInfo)
-            Thread.Sleep(2000)
-            EarnPointsProceedure(args(1))
+        Dim service As FirefoxDriverService = FirefoxDriverService.CreateDefaultService()
+        service.Port = 4444
+        service.FirefoxBinaryPath = "C:\Program Files (x86)\Mozilla Firefox\firefox.exe"
+        Dim foxoption = loadXML("FoxProfile")
+        optionsFox.AddArguments("-start-debugger-server 4444", "-profile " & foxoption)
+        Dim url As String = "https://www.bing.com/search?q=a"
+        Dim searchTerms As List(Of KeyValuePair(Of Integer, String))
+        searchTerms = GetSearchTerms()
+        Dim count As Integer = 1
+        'mobile mode
+        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromMinutes(5))
+        CheckSessionAccount()
+        driver.Navigate().GoToUrl(url)
+        driver.Manage.Window.Minimize()
+        Thread.Sleep(2000)
+        driver.Manage.Window.Maximize()
+        count = 1
+        If args.Equals("m") Or args.Equals("both") Then
+            For indexOfSearchTerms As Integer = 30 To 50
+                BingRewards(searchTerms(indexOfSearchTerms).Value)
+                count += 1
+                If count = 4 Then
+                    timer()
+                    count = 1
+                End If
+            Next
+        End If
+        CloseProgram("firefox")
+
+        Thread.Sleep(2000)
+        driver.Quit()
+
+        'pc mode
+        optionsFox.AddArgument("-safe-mode")
+        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromMinutes(5))
+        CheckSessionAccount()
+        driver.Navigate().GoToUrl(url)
+        driver.Manage.Window.Minimize()
+        Thread.Sleep(2000)
+        driver.Manage.Window.Maximize()
+        If args.Equals("pc") Or args.Equals("both") Then
+            For indexOfSearchTerms As Integer = 0 To 29
+                BingRewards(searchTerms(indexOfSearchTerms).Value)
+                count += 1
+                If count = 5 Then
+                    timer()
+                    count = 1
+                End If
+            Next
         End If
     End Sub
     Private Sub timer()
@@ -39,64 +77,6 @@ Module Program
             Threading.Thread.Sleep(1000)
         Loop
     End Sub
-
-    Private Sub EarnPointsProceedure(ByVal agrs As String)
-        ' Try
-        Dim service As FirefoxDriverService = FirefoxDriverService.CreateDefaultService()
-        service.Port = 4444
-        service.FirefoxBinaryPath = "C:\Program Files (x86)\Mozilla Firefox\firefox.exe"
-        Dim foxoption = loadXML("FoxProfile")
-        optionsFox.AddArguments("-start-debugger-server 4444", "-profile " & foxoption)
-        Dim url As String = "https://www.bing.com/search?q=a"
-        Dim isSearchReady = False
-        Dim searchTerms As List(Of KeyValuePair(Of Integer, String))
-        searchTerms = GetSearchTerms()
-
-        'PC mode
-        driver = New ChromeDriver(ChromeDriverService.CreateDefaultService(), options, TimeSpan.FromMinutes(5))
-        CheckSessionAccount()
-        driver.Navigate().GoToUrl(url)
-        driver.Manage.Window.Minimize()
-        Thread.Sleep(2000)
-        driver.Manage.Window.Maximize()
-        Dim count As Integer = 1
-        If agrs.Equals("pc") Or agrs.Equals("both") Then
-            For indexOfSearchTerms As Integer = 0 To 29
-                BingRewards(searchTerms(indexOfSearchTerms).Value)
-                count += 1
-                If count = 5 Then
-                    timer()
-                    count = 1
-                End If
-            Next
-        End If
-        CloseProgram("chrome")
-
-        'mobile mode
-        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromMinutes(5))
-        CheckSessionAccount()
-        driver.Navigate().GoToUrl(url)
-        driver.Manage.Window.Minimize()
-        Thread.Sleep(2000)
-        driver.Manage.Window.Maximize()
-        count = 1
-        If agrs.Equals("m") Or agrs.Equals("both") Then
-            For indexOfSearchTerms As Integer = 30 To 50
-                BingRewards(searchTerms(indexOfSearchTerms).Value)
-                count += 1
-                If count = 4 Then
-                    timer()
-                    count = 1
-                End If
-            Next
-        End If
-        CloseProgram("firefox")
-        'shutdown()
-        'Catch ex As Exception
-        'shutdown()
-        ' End Try
-    End Sub
-
     Private Sub CloseProgram(processname As String)
         Dim ProgramProcesses As Process() = Process.GetProcessesByName(processname)
         For Each programprocess As Process In ProgramProcesses
@@ -248,7 +228,7 @@ Module Program
                     Next
                 Next
 
-                Thread.Sleep(New Random().Next(3000, 5000)) 'may bug kaya nag random ang ginawakong sleep
+                Thread.Sleep(New Random().Next(3000, 5000))
             Catch ex As HttpRequestException
                 Console.WriteLine("Error retrieving Google Trends JSON.")
             Catch ex As KeyNotFoundException
