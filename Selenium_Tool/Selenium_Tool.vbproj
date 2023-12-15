@@ -4,11 +4,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>auto_attendance_fujitsu</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
-    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <ApplicationIcon>robot.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="favicon.ico" />
+    <Content Include="robot.ico" />
   </ItemGroup>
 
   <ItemGroup>
