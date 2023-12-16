@@ -20,14 +20,15 @@ Module Program
         searchTerms = GetSearchTerms()
         Dim count As Integer = 1
         'mobile mode
-        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromMinutes(5))
+        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
+        Thread.Sleep(2000)
         CheckSessionAccount()
         driver.Navigate().GoToUrl(url)
         driver.Manage.Window.Minimize()
         Thread.Sleep(2000)
         driver.Manage.Window.Maximize()
         count = 1
-        If args.Equals("m") Or args.Equals("both") Then
+        If args(0).Equals("m") Or args(0).Equals("both") Then
             For indexOfSearchTerms As Integer = 30 To 50
                 BingRewards(searchTerms(indexOfSearchTerms).Value)
                 count += 1
@@ -44,13 +45,14 @@ Module Program
 
         'pc mode
         optionsFox.AddArgument("-safe-mode")
-        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromMinutes(5))
+        driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
+        Thread.Sleep(2000)
         CheckSessionAccount()
         driver.Navigate().GoToUrl(url)
         driver.Manage.Window.Minimize()
         Thread.Sleep(2000)
         driver.Manage.Window.Maximize()
-        If args.Equals("pc") Or args.Equals("both") Then
+        If args(0).Equals("pc") Or args(0).Equals("both") Then
             For indexOfSearchTerms As Integer = 0 To 29
                 BingRewards(searchTerms(indexOfSearchTerms).Value)
                 count += 1
