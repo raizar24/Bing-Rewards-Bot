@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Variable>
-  <email>youremail</email>
-  <bpassword>yourpassword</bpassword>
+  <email>email</email>
+  <bpassword>password</bpassword>
   <FoxProfile>appdata</FoxProfile>
 </Variable>
 

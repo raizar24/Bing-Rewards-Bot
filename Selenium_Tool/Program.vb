@@ -221,7 +221,7 @@ Module Program
         For Each [date] As String In dates
             Try
                 ' get URL
-                Dim url As String = $"https://trends.google.com/trends/api/dailytrends?hl=en-US&ed={ [date]}&geo=ph&ns=15"
+                Dim url As String = $"https://trends.google.com/trends/api/dailytrends?hl=en-US&ed={ [date]}&geo=US&ns=15"
                 Dim client As New HttpClient()
                 Dim response As String = client.GetStringAsync(url).Result
                 response = response.Substring(5) 'remove first 5 char
@@ -253,7 +253,6 @@ Module Program
             Using reader As New StreamReader(fileName)
                 Dim lines As String() = reader.ReadToEnd().Split(Environment.NewLine)
                 For Each line As String In lines
-                    Console.WriteLine("Word: " & line)
                     Cached.Add(line)
                 Next
             End Using
@@ -276,7 +275,7 @@ Module Program
             Using writer As New StreamWriter(fileName, True)
                 writer.WriteLine(words)
             End Using
-            Console.WriteLine($"File '{fileName}' created successfully.")
+            Console.WriteLine($"Cache '{words}'.")
         Catch ex As Exception
             Console.WriteLine($"An error occurred: {ex.Message}")
         End Try
