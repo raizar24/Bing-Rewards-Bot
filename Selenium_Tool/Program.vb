@@ -221,7 +221,7 @@ Module Program
         For Each [date] As String In dates
             Try
                 ' get URL
-                Dim url As String = $"https://trends.google.com/trends/api/dailytrends?hl=en-US&ed={ [date]}&geo=US&ns=15"
+                Dim url As String = $"https://trends.google.com/trends/api/dailytrends?hl=en-US&ed={ [date]}&geo=ph&ns=15"
                 Dim client As New HttpClient()
                 Dim response As String = client.GetStringAsync(url).Result
                 response = response.Substring(5) 'remove first 5 char
