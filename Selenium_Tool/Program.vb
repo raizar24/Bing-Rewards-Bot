@@ -4,6 +4,7 @@ Imports System.Threading
 Imports Newtonsoft.Json.Linq
 Imports System.Net.Http
 Imports System.Xml
+Imports System.IO
 
 Module Program
     Dim driver As IWebDriver
@@ -18,6 +19,8 @@ Module Program
         Dim url As String = "https://www.bing.com/search?q=a"
         Dim searchTerms As List(Of KeyValuePair(Of Integer, String))
         searchTerms = GetSearchTerms()
+        Dim Cached As New List(Of String)
+        Cached = ReadWordsFromFile()
         Dim count As Integer = 1
         'mobile mode
         driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
@@ -29,20 +32,22 @@ Module Program
         driver.Manage.Window.Maximize()
         count = 1
         If args(0).Equals("m") Or args(0).Equals("both") Then
-            For indexOfSearchTerms As Integer = 30 To 50
-                BingRewards(searchTerms(indexOfSearchTerms).Value)
-                count += 1
-                If count = 4 Then
-                    timer()
-                    count = 1
+            For indexOfSearchTerms As Integer = 30 To 49
+                Dim searchtext As String = searchTerms(indexOfSearchTerms).Value
+                If Not Cached.Contains(searchtext) Then
+                    BingRewards(searchtext)
+                    WriteWordsToFile(searchtext)
+                    count += 1
+                    If count = 4 Then
+                        timer()
+                        count = 1
+                    End If
                 End If
             Next
         End If
         CloseProgram("firefox")
-
         Thread.Sleep(2000)
         driver.Quit()
-
         'pc mode
         optionsFox.AddArgument("-safe-mode")
         driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
@@ -54,11 +59,15 @@ Module Program
         driver.Manage.Window.Maximize()
         If args(0).Equals("pc") Or args(0).Equals("both") Then
             For indexOfSearchTerms As Integer = 0 To 29
-                BingRewards(searchTerms(indexOfSearchTerms).Value)
-                count += 1
-                If count = 5 Then
-                    timer()
-                    count = 1
+                Dim searchtext = searchTerms(indexOfSearchTerms).Value
+                If Not Cached.Equals(searchtext) Then
+                    BingRewards(searchtext)
+                    WriteWordsToFile(searchtext)
+                    count += 1
+                    If count = 5 Then
+                        timer()
+                        count = 1
+                    End If
                 End If
             Next
         End If
@@ -110,7 +119,6 @@ Module Program
     End Function
     'change into more human like searches 
     Private Sub BingRewards(searchTerm As String)
-
         Thread.Sleep(2000)
         Dim search As IWebElement = driver.FindElement(By.Id("sb_form_q"))
         search.Clear()
@@ -168,8 +176,6 @@ Module Program
         If elementsMobile2.Count > 0 Then
             LoginProceedure()
         End If
-
-
     End Sub
 
     Private Sub LoginProceedure()
@@ -205,7 +211,6 @@ Module Program
             ' append in year month date format
             dates.Add([date].ToString("yyyyMMdd"))
         Next
-
         Return dates
     End Function
 
@@ -216,12 +221,11 @@ Module Program
         For Each [date] As String In dates
             Try
                 ' get URL
-                Dim url As String = $"https://trends.google.com/trends/api/dailytrends?hl=en-US&ed={ [date]}&geo=PH&ns=15"
+                Dim url As String = $"https://trends.google.com/trends/api/dailytrends?hl=en-US&ed={ [date]}&geo=US&ns=15"
                 Dim client As New HttpClient()
                 Dim response As String = client.GetStringAsync(url).Result
                 response = response.Substring(5) 'remove first 5 char
                 Dim jsonResponse As JObject = JObject.Parse(response)
-
                 ' get all trending searches with their related queries
                 For Each topic As JObject In jsonResponse("default")("trendingSearchesDays")(0)("trendingSearches")
                     searchTerms.Add(topic("title")("query").ToString().ToLower())
@@ -229,7 +233,6 @@ Module Program
                         searchTerms.Add(relatedTopic("query").ToString().ToLower())
                     Next
                 Next
-
                 Thread.Sleep(New Random().Next(3000, 5000))
             Catch ex As HttpRequestException
                 Console.WriteLine("Error retrieving Google Trends JSON.")
@@ -237,11 +240,46 @@ Module Program
                 Console.WriteLine("Cannot parse, JSON keys are modified.")
             End Try
         Next
-
-        ' may mga duplicate so nag distinct code ako
         searchTerms = searchTerms.Distinct().ToList()
         Console.WriteLine($"# of search items: {searchTerms.Count}" & vbCrLf)
         Return searchTerms.Select(Function(term, index) New KeyValuePair(Of Integer, String)(index, term)).ToList()
     End Function
+
+    Function ReadWordsFromFile()
+        Dim currentDate As String = DateTime.Now.ToString("MMddyy")
+        Dim fileName As String = $"{currentDate}.txt"
+        Dim Cached As New List(Of String)
+        Try
+            Using reader As New StreamReader(fileName)
+                Dim lines As String() = reader.ReadToEnd().Split(Environment.NewLine)
+                For Each line As String In lines
+                    Console.WriteLine("Word: " & line)
+                    Cached.Add(line)
+                Next
+            End Using
+        Catch ex As FileNotFoundException
+            Console.WriteLine($"File '{fileName}' not found.")
+        Catch ex As Exception
+            Console.WriteLine($"An error occurred: {ex.Message}")
+        End Try
+        Return Cached.Distinct().ToList()
+    End Function
+
+    Sub WriteWordsToFile(words As String)
+        Dim currentDate As String = DateTime.Now.ToString("MMddyy")
+        Dim fileName As String = $"{currentDate}.txt"
+        Try
+            If Not File.Exists(fileName) Then
+                File.Create(fileName).Dispose()
+                Console.WriteLine($"File '{fileName}' created.")
+            End If
+            Using writer As New StreamWriter(fileName, True)
+                writer.WriteLine(words)
+            End Using
+            Console.WriteLine($"File '{fileName}' created successfully.")
+        Catch ex As Exception
+            Console.WriteLine($"An error occurred: {ex.Message}")
+        End Try
+    End Sub
 
 End Module
