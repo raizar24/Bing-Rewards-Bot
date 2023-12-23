@@ -73,17 +73,18 @@ Module Program
         End If
     End Sub
     Private Sub timer()
-        Dim startTime As DateTime
-        startTime = DateTime.Now.AddMinutes(15).AddSeconds(30)
-        Do While startTime > DateTime.Now
-            Dim remainingTime As TimeSpan = startTime - DateTime.Now
+        Dim endTime As DateTime = DateTime.Now.AddMinutes(15).AddSeconds(30)
+
+        Do While DateTime.Now < endTime
+            Dim remainingTime As TimeSpan = endTime - DateTime.Now
 
             If remainingTime.TotalSeconds <= 0 Then
                 Console.WriteLine("Time is up!")
                 Exit Do
             End If
+
             Dim minutesLeft As Integer = CInt(remainingTime.TotalMinutes)
-            Dim secondsLeft As Integer = CInt(remainingTime.Seconds)
+            Dim secondsLeft As Integer = remainingTime.Seconds
             Console.WriteLine("{0:00}:{1:00} remaining", minutesLeft, secondsLeft)
             Threading.Thread.Sleep(1000)
         Loop
