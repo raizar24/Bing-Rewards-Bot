@@ -31,20 +31,18 @@ Module Program
         Thread.Sleep(2000)
         driver.Manage.Window.Maximize()
         count = 1
-        If args(0).Equals("m") Or args(0).Equals("both") Then
-            For indexOfSearchTerms As Integer = 30 To 49
-                Dim searchtext As String = searchTerms(indexOfSearchTerms).Value
-                If Not Cached.Contains(searchtext) Then
-                    BingRewards(searchtext)
-                    WriteWordsToFile(searchtext)
-                    count += 1
-                    If count = 4 Then
-                        timer()
-                        count = 1
-                    End If
+        For indexOfSearchTerms As Integer = 30 To 49
+            Dim searchtext As String = searchTerms(indexOfSearchTerms).Value
+            If Not Cached.Contains(searchtext) Then
+                BingRewards(searchtext)
+                WriteWordsToFile(searchtext)
+                count += 1
+                If count = 4 Then
+                    timer()
+                    count = 1
                 End If
-            Next
-        End If
+            End If
+        Next
         CloseProgram("firefox")
         Thread.Sleep(2000)
         driver.Quit()
@@ -57,20 +55,18 @@ Module Program
         driver.Manage.Window.Minimize()
         Thread.Sleep(2000)
         driver.Manage.Window.Maximize()
-        If args(0).Equals("pc") Or args(0).Equals("both") Then
-            For indexOfSearchTerms As Integer = 0 To 29
-                Dim searchtext = searchTerms(indexOfSearchTerms).Value
-                If Not Cached.Equals(searchtext) Then
-                    BingRewards(searchtext)
-                    WriteWordsToFile(searchtext)
-                    count += 1
-                    If count = 5 Then
-                        timer()
-                        count = 1
-                    End If
+        For indexOfSearchTerms As Integer = 0 To 29
+            Dim searchtext = searchTerms(indexOfSearchTerms).Value
+            If Not Cached.Equals(searchtext) Then
+                BingRewards(searchtext)
+                WriteWordsToFile(searchtext)
+                count += 1
+                If count = 5 Then
+                    timer()
+                    count = 1
                 End If
-            Next
-        End If
+            End If
+        Next
     End Sub
     Private Sub timer()
         Dim endTime As DateTime = DateTime.Now.AddMinutes(15).AddSeconds(30)
