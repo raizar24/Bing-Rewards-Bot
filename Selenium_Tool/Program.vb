@@ -5,6 +5,7 @@ Imports Newtonsoft.Json.Linq
 Imports System.Net.Http
 Imports System.Xml
 Imports System.IO
+Imports Microsoft.VisualBasic.FileIO
 
 Module Program
     Dim driver As IWebDriver
@@ -17,11 +18,19 @@ Module Program
         Dim foxoption = loadXML("FoxProfile")
         optionsFox.AddArguments("-start-debugger-server 4444", "-profile " & foxoption)
         Dim url As String = "https://www.bing.com/search?q=a"
+
         Dim searchTerms As List(Of KeyValuePair(Of Integer, String))
-        searchTerms = GetSearchTerms()
-        Dim Cached As New List(Of String)
-        Cached = ReadWordsFromFile()
+        Dim currentDate As String = DateTime.Now.ToString("MMddyy")
+        Dim fileName As String = $"{currentDate}.csv"
+        If Not File.Exists(fileName) Then
+            searchTerms = GetSearchTerms()
+            SaveToCSV(searchTerms, fileName)
+        Else
+            searchTerms = ReadFromCSV(fileName)
+        End If
+        Dim Cached As List(Of String) = ReadWordsFromFile()
         Dim count As Integer = 1
+
         'mobile mode
         driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
         Thread.Sleep(2000)
@@ -30,7 +39,6 @@ Module Program
         driver.Manage.Window.Minimize()
         Thread.Sleep(2000)
         driver.Manage.Window.Maximize()
-        count = 1
         For indexOfSearchTerms As Integer = 30 To 49
             Dim searchtext As String = searchTerms(indexOfSearchTerms).Value
             If Not Cached.Contains(searchtext) Then
@@ -46,6 +54,7 @@ Module Program
         CloseProgram("firefox")
         Thread.Sleep(2000)
         driver.Quit()
+
         'pc mode
         optionsFox.AddArgument("-safe-mode")
         driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
@@ -108,7 +117,6 @@ Module Program
 
     Private Function RandomString(length As Integer) As String
         Const chars As String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        'Const chars As String = "sdfjklsdjfnriuerwqenrmmqwehjxvcnasdfhjklsdfklsjdfklj123456677889ABCDERFer"
         Dim random As New Random()
         Dim result As New String(Enumerable.Repeat(chars, length) _
         .Select(Function(s) s(random.Next(s.Length))).ToArray())
@@ -277,5 +285,30 @@ Module Program
             Console.WriteLine($"An error occurred: {ex.Message}")
         End Try
     End Sub
+    Sub SaveToCSV(searchTerms As List(Of KeyValuePair(Of Integer, String)), fileName As String)
+        Using writer As New StreamWriter(fileName)
+            For Each kvp As KeyValuePair(Of Integer, String) In searchTerms
+                writer.WriteLine($"{kvp.Key},{kvp.Value}")
+            Next
+        End Using
+    End Sub
 
+    Function ReadFromCSV(fileName As String) As List(Of KeyValuePair(Of Integer, String))
+        Dim searchTerms As New List(Of KeyValuePair(Of Integer, String))()
+        Using parser As New TextFieldParser(fileName)
+            parser.TextFieldType = FieldType.Delimited
+            parser.SetDelimiters(",")
+
+            ' Skip header
+            parser.ReadLine()
+
+            While Not parser.EndOfData
+                Dim fields As String() = parser.ReadFields()
+                If fields.Length = 2 AndAlso Integer.TryParse(fields(0), New Integer) Then
+                    searchTerms.Add(New KeyValuePair(Of Integer, String)(CInt(fields(0)), fields(1)))
+                End If
+            End While
+        End Using
+        Return searchTerms
+    End Function
 End Module
