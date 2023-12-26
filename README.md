@@ -14,3 +14,6 @@ Setting.XML
   - Username   :  your username
   - bpassword  :  your outlook password
   - FoxProfile :  your firefox %appdata% default profile path 
+
+To do:
+  - Automate mozilla firefox and User Agent Switch installation
