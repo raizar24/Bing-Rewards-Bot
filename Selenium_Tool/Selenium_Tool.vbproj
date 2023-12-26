@@ -12,6 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Desktop.Robot" Version="1.5.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
+    <PackageReference Include="InputSimulator" Version="1.0.4" />
     <PackageReference Include="Selenium.WebDriver" Version="4.15.0" />
   </ItemGroup>
 

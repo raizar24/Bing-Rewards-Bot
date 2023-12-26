@@ -6,17 +6,23 @@ Imports System.Net.Http
 Imports System.Xml
 Imports System.IO
 Imports Microsoft.VisualBasic.FileIO
+Imports OpenQA.Selenium.Interactions
+Imports HtmlAgilityPack
+Imports Desktop.Robot.Windows
+Imports WindowsInput
 
 Module Program
     Dim driver As IWebDriver
     Dim optionsFox As New FirefoxOptions()
 
     Sub Main(args As String())
+        Dim complete As Boolean = False
+        Do While complete = False
+            complete = DownloadFirefox()
+        Loop
         Dim service As FirefoxDriverService = FirefoxDriverService.CreateDefaultService()
         service.Port = 4444
         service.FirefoxBinaryPath = "C:\Program Files (x86)\Mozilla Firefox\firefox.exe"
-        Dim foxoption = loadXML("FoxProfile")
-        optionsFox.AddArguments("-start-debugger-server 4444", "-profile " & foxoption)
         Dim url As String = "https://www.bing.com/search?q=a"
 
         Dim searchTerms As List(Of KeyValuePair(Of Integer, String))
@@ -31,9 +37,95 @@ Module Program
         Dim Cached As List(Of String) = ReadWordsFromFile()
         Dim count As Integer = 1
 
-        'mobile mode
+        Dim extensionPath As String = DownloadUserAgentSwitcher()
         driver = New FirefoxDriver(service, optionsFox, TimeSpan.FromSeconds(30))
+        driver.Navigate().GoToUrl("about:addons")
+
+        Dim buttonElement As IWebElement = driver.FindElement(By.ClassName("more-options-button"))
+        buttonElement.Click()
+        Thread.Sleep(1000)
+        Dim panelListElement As IWebElement = driver.FindElement(By.CssSelector("panel-list[role='menu'][align='left'][valign='bottom']"))
+        Dim actions22 As Actions = New Actions(driver)
+        actions22.MoveToElement(panelListElement).Perform()
+        Thread.Sleep(1000)
+        Dim panelItemElement2 As IWebElement = driver.FindElement(By.CssSelector("panel-item[action='install-from-file'][data-l10n-id='addon-install-from-file'][role='presentation'][data-l10n-attrs='accesskey']"))
+        panelItemElement2.Click()
+        Thread.Sleep(1000)
+
+        'It Just Works -Todd Howard //////////////
+        Dim robot As New Robot()
+        Dim inputSimulator As New InputSimulator()
+        inputSimulator.Keyboard.TextEntry(extensionPath)
+        Thread.Sleep(1000)
+        robot.KeyPress(Desktop.Robot.Key.Enter)
+        Dim actions As New Actions(driver)
+        Thread.Sleep(1000)
+        actions.SendKeys(Keys.Enter)
+        actions.KeyDown(Keys.Alt).SendKeys("a").KeyUp(Keys.Alt).Perform()
+        Thread.Sleep(1000)
+        actions.KeyUp(Keys.Alt).SendKeys("a").KeyUp(Keys.Alt).Perform()
+        actions.KeyDown(Keys.Alt).SendKeys("o").KeyUp(Keys.Alt).Perform()
+        Thread.Sleep(1000)
+        actions.KeyUp(Keys.Alt).SendKeys("o").KeyUp(Keys.Alt).Perform()
+
+        'proceed deleting desktop mode 
+        Dim element As IWebElement = driver.FindElement(By.XPath("//span[@class='category-name' and @data-l10n-id='addon-category-extension']"))
+        element.Click()
+        Thread.Sleep(1000)
+        Dim element2 As IWebElement = driver.FindElement(By.XPath("//h3[@class='addon-name' and @id='user-agent-switcher_ninetailed_ninja-heading']"))
+        element2.Click()
+        Thread.Sleep(1000)
+        Dim element3 As IWebElement = driver.FindElement(By.XPath("//button[@is='named-deck-button' and @deck='details-deck' and @name='preferences' and @data-l10n-id='preferences-addon-button']"))
+        element3.Click()
+
+        Dim tabsToPress = 9 ' Adjust as needed
+        For i = 1 To tabsToPress
+            robot.KeyPress(Desktop.Robot.Key.Tab)
+            Thread.Sleep(200)
+        Next
+        robot.KeyPress(Desktop.Robot.Key.Enter)
+        Thread.Sleep(200)
+
+        'delete desktop modes in add-ins
+        For i As Integer = 1 To 6
+            For j As Integer = 1 To 5
+                robot.KeyPress(Desktop.Robot.Key.Tab)
+                Thread.Sleep(200)
+            Next
+            ' Press Enter
+            robot.KeyPress(Desktop.Robot.Key.Enter)
+            Thread.Sleep(200)
+        Next
+        'end
+
+        'proceed to navigate extension / addin
+        Dim element5 As IWebElement = driver.FindElement(By.XPath("//button[@is='discover-button' and @viewid='addons://discover/' and @class='category' and @role='tab' and @name='discover' and @aria-selected='false' and @data-l10n-id='addon-category-discover-title' and @tabindex='-1' and @title='Recommendations']"))
+        element5.Click()
+        Thread.Sleep(200)
+
+        Dim tabsToPress2 = 15
+        For i = 1 To tabsToPress2
+            robot.KeyPress(Desktop.Robot.Key.Tab)
+            Thread.Sleep(200)
+        Next
+
+        robot.KeyPress(Desktop.Robot.Key.Right)
+        Thread.Sleep(200)
+        robot.KeyPress(Desktop.Robot.Key.Enter)
         Thread.Sleep(2000)
+        robot.KeyPress(Desktop.Robot.Key.Enter)
+        Thread.Sleep(200)
+
+        'inside the extension
+        Dim tabsToPress3 = 8
+        For i = 1 To tabsToPress3
+            robot.KeyPress(Desktop.Robot.Key.Tab)
+            Thread.Sleep(200)
+        Next
+        robot.KeyPress(Desktop.Robot.Key.Down)
+        Thread.Sleep(2000)
+        '////////////////////
+
         CheckSessionAccount()
         driver.Navigate().GoToUrl(url)
         driver.Manage.Window.Minimize()
@@ -45,7 +137,7 @@ Module Program
                 BingRewards(searchtext)
                 WriteWordsToFile(searchtext)
                 count += 1
-                If count = 4 Then
+                If count = 6 Then
                     timer()
                     count = 1
                 End If
@@ -310,5 +402,63 @@ Module Program
             End While
         End Using
         Return searchTerms
+    End Function
+
+    Function DownloadFirefox()
+        Try
+            Dim downloadUrl As String = "https://download.mozilla.org/?product=firefox-latest&os=win&lang=en-US"
+            Dim userprofile As String = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            Dim savePath As String = userprofile & "\Downloads\FirefoxInstaller.exe"
+            Using httpClient As New HttpClient()
+                Dim responseBytes As Byte() = httpClient.GetByteArrayAsync(downloadUrl).Result
+                File.WriteAllBytes(savePath, responseBytes)
+            End Using
+
+            Dim installProcess As New Process()
+            installProcess.StartInfo.FileName = savePath
+            installProcess.StartInfo.Arguments = "/S"
+            installProcess.StartInfo.UseShellExecute = False
+            installProcess.StartInfo.CreateNoWindow = True
+            installProcess.Start()
+            installProcess.WaitForExit()
+            Return True
+        Catch ex As Exception
+            Console.WriteLine("Error: " & ex.Message)
+            Return False
+        End Try
+    End Function
+
+    Function DownloadUserAgentSwitcher()
+        Dim addonPageUrl As String = "https://addons.mozilla.org/en-US/firefox/addon/uaswitcher/"
+        Dim xpiUrl As String = GetLatestVersionDownloadLink(addonPageUrl)
+        If Not String.IsNullOrEmpty(xpiUrl) Then
+            Dim userprofile As String = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            Dim savePath As String = userprofile & "\Downloads\uaswitcher.xpi"
+
+            Using httpClient As New HttpClient()
+                Dim responseBytes As Byte() = httpClient.GetByteArrayAsync(xpiUrl).Result
+                File.WriteAllBytes(savePath, responseBytes)
+            End Using
+            Return savePath
+        Else
+            Return String.Empty
+            Console.WriteLine("Failed to fetch the download link for the latest version.")
+        End If
+    End Function
+
+    Function GetLatestVersionDownloadLink(addonPageUrl As String) As String
+        Dim httpClient As New HttpClient()
+        Dim html As String = httpClient.GetStringAsync(addonPageUrl).Result
+
+        Dim htmlDocument As New HtmlDocument()
+        htmlDocument.LoadHtml(html)
+
+        Dim downloadLinkNode As HtmlNode = htmlDocument.DocumentNode.SelectSingleNode("//a[@class='InstallButtonWrapper-download-link' and contains(@href, 'uaswitcher')]")
+        If downloadLinkNode IsNot Nothing Then
+            Dim downloadLink As String = downloadLinkNode.GetAttributeValue("href", "")
+            Return downloadLink
+        Else
+            Return String.Empty
+        End If
     End Function
 End Module

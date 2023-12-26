@@ -2,7 +2,6 @@
 <Variable>
   <email>email</email>
   <bpassword>password</bpassword>
-  <FoxProfile>appdata</FoxProfile>
 </Variable>
 
 
