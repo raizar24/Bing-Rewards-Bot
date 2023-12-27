@@ -156,6 +156,11 @@ Module Program
         driver.Manage.Window.Minimize()
         Thread.Sleep(2000)
         driver.Manage.Window.Maximize()
+        Dim elements77 As IReadOnlyCollection(Of IWebElement) = driver.FindElements(By.Id("id_a")) 'Mobile mode check session
+        If elements77.Count > 0 Then
+            Dim element6 As IWebElement = driver.FindElement(By.XPath("//input[@type='submit' and @name='submit' and @id='id_a' and @value='Sign in']"))
+            element6.Click()
+        End If
         For indexOfSearchTerms As Integer = 0 To 29
             Dim searchtext = searchTerms(indexOfSearchTerms).Value
             If Not Cached.Equals(searchtext) Then
