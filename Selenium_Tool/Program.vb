@@ -185,7 +185,7 @@ Module Program
                 Exit Do
             End If
 
-            Dim minutesLeft As Integer = remainingTime.TotalMinutes
+            Dim minutesLeft As Integer = remainingTime.Minutes
             Dim secondsLeft As Integer = remainingTime.Seconds
             Console.WriteLine("{0:00}:{1:00} remaining", minutesLeft, secondsLeft)
             Threading.Thread.Sleep(1000)
