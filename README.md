@@ -9,3 +9,4 @@ SET:
 Setting.XML
   - Username   :  your username
   - bpassword  :  your outlook password
+  - region     :  google trends region
