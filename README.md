@@ -17,4 +17,5 @@ Todo:
 - [ ] Modify to headless
 - [ ] replace user-agent-switcher addins with user-agent argument.
 - [ ] allow user to customize/select existing profile.
-- [ ] include checking if mozilla is already installed
+- [ ] include checking if mozilla is already installed.
+- [ ] Linux and MacOS version ? ? <- big update, requires refactoring of my code (skill issue)
