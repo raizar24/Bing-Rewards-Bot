@@ -12,7 +12,8 @@ Setting.XML
   - region     :  google trends region
 
 Todo:
-* Utilize geckodriver (https://github.com/mozilla/geckodriver/releases)
-* automate downloading the latest geckodriver
-* Modify to headless
-* replace user-agent-switcher addins with user-agent argument.
+- [ ] Utilize geckodriver (https://github.com/mozilla/geckodriver/releases)
+- [ ] automate downloading the latest geckodriver
+- [ ] Modify to headless
+- [ ] replace user-agent-switcher addins with user-agent argument.
+- [ ] allow user to customize/select existing profile.
