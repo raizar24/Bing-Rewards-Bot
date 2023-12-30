@@ -15,3 +15,4 @@ Todo:
 * Utilize geckodriver (https://github.com/mozilla/geckodriver/releases)
 * automate downloading the latest geckodriver
 * Modify to headless
+* replace user-agent-switcher addins with user-agent argument.
