@@ -12,6 +12,6 @@ Setting.XML
   - region     :  google trends region
 
 Todo:
-1. Utilize geckodriver
-  1.1 automate downloading the latest geckodriver
-2. Modify to headless
+* Utilize geckodriver (https://github.com/mozilla/geckodriver/releases)
+* automate downloading the latest geckodriver
+* Modify to headless
