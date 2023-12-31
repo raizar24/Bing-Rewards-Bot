@@ -15,7 +15,8 @@ Todo:
 - [ ] Utilize geckodriver (https://github.com/mozilla/geckodriver/releases)
 - [ ] automate downloading the latest geckodriver
 - [ ] Modify to headless
-- [ ] replace user-agent-switcher addins with user-agent argument.
-- [ ] allow user to customize/select existing profile.
+- [ ] customize max pc/mobile search
 - [ ] include checking if mozilla is already installed.
+- [ ] allow user to customize/select existing profile.
+- [ ] replace user-agent-switcher addins with user-agent argument.
 - [ ] Linux and MacOS version ? ? <- big update, requires refactoring of my code (skill issue)
